@@ -1,19 +1,19 @@
 const express = require('express');
 const admin = require('firebase-admin');
-const multer = require('multer');
-const upload = multer({ storage: multer.memoryStorage() });
+const cors = require('cors'); // Import the CORS middleware
 
 // Initialize Firebase Admin
-const serviceAccount = require('./serviceAccountKey.json');
+const serviceAccount = require('./serviceAccountKey.json'); // Replace with your Firebase service account key
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  storageBucket: 'your-project-id.appspot.com'  // Make sure to replace with your actual bucket
 });
 
 const db = admin.firestore();
-const bucket = admin.storage().bucket();
 
 const app = express();
+app.use(cors({
+  origin: 'http://localhost:5173', // Allow frontend access
+}));
 app.use(express.json()); // Middleware to parse JSON
 
 // Welcome message on the root route
@@ -21,35 +21,39 @@ app.get('/', (req, res) => {
   res.status(200).send('Welcome to the Employee Management API!');
 });
 
-// Add Employee
-app.post('/api/employees', upload.single('photo'), async (req, res) => {
+// Add Employee (with a photo URL instead of uploading a file)
+app.post('/employees', async (req, res) => {
   try {
-    const { name, surname, age, idNumber, role } = req.body;
+    const { id, name, email, phone, position, imageUrl } = req.body;
+    
+    if (!id || !name || !email || !phone || !position) {
+      return res.status(400).send('All fields are required!');
+    }
 
-    // Upload photo to Firebase Storage
-    const blob = bucket.file(`photos/${idNumber}`);
-    const blobStream = blob.createWriteStream({ resumable: false });
-    blobStream.end(req.file.buffer);
-
-    // Save employee data in Firestore
     const employeeData = { 
+      id, 
       name, 
-      surname, 
-      age, 
-      idNumber, 
-      role, 
-      photoUrl: blob.publicUrl() 
+      email, 
+      phone, 
+      position, 
+      imageUrl: imageUrl || '',  // Use a default empty string if no image URL is provided
     };
-    await db.collection('employees').doc(idNumber).set(employeeData);
 
-    res.status(201).send('Employee added successfully');
+    // Log the document path being used
+    console.log('Document path:', `employees/${id}`);
+
+    await db.collection('employees').doc(id).set(employeeData);
+
+    res.status(201).send('Employee added successfully!');
   } catch (error) {
-    res.status(500).send(error.message);
+    console.error('Error adding employee:', error);
+    res.status(500).send('Internal Server Error');
   }
 });
 
+
 // Get all Employees
-app.get('/api/employees', async (req, res) => {
+app.get('/employees', async (req, res) => {
   try {
     const snapshot = await db.collection('employees').get();
     const employees = snapshot.docs.map(doc => doc.data());
@@ -60,7 +64,7 @@ app.get('/api/employees', async (req, res) => {
 });
 
 // Get a specific Employee
-app.get('/api/employees/:id', async (req, res) => {
+app.get('/employees/:id', async (req, res) => {
   try {
     const doc = await db.collection('employees').doc(req.params.id).get();
     if (!doc.exists) {
@@ -73,10 +77,11 @@ app.get('/api/employees/:id', async (req, res) => {
 });
 
 // Update Employee
-app.put('/api/employees/:id', async (req, res) => {
+app.put('/employees/:id', async (req, res) => {
   try {
-    const { name, surname, age, role } = req.body;
-    const updatedData = { name, surname, age, role };
+    const { name, email, phone, position, imageUrl } = req.body;
+    const updatedData = { name, email, phone, position, imageUrl };
+
     await db.collection('employees').doc(req.params.id).update(updatedData);
     res.status(200).send('Employee updated successfully');
   } catch (error) {
@@ -84,17 +89,16 @@ app.put('/api/employees/:id', async (req, res) => {
   }
 });
 
-// Delete Employee and their photo
-app.delete('/api/employees/:id', async (req, res) => {
+// Delete Employee
+app.delete('/employees/:id', async (req, res) => {
   try {
     const doc = await db.collection('employees').doc(req.params.id).get();
-    if (doc.exists) {
-      const photoUrl = doc.data().photoUrl;
-      const file = bucket.file(photoUrl); // Get file reference from photoUrl
-      await file.delete(); // Delete file from Firebase Storage
+    if (!doc.exists) {
+      return res.status(404).send('Employee not found');
     }
-    await db.collection('employees').doc(req.params.id).delete(); // Delete employee from Firestore
-    res.status(200).send('Employee and associated file deleted successfully');
+
+    await db.collection('employees').doc(req.params.id).delete();
+    res.status(200).send('Employee deleted successfully');
   } catch (error) {
     res.status(500).send(error.message);
   }

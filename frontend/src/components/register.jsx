@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -8,17 +9,10 @@ function Register() {
     email: '',
     phone: '',
     position: '',
-    image: null, // Change to null for file upload
+    imageUrl: '',
   });
-
-  const [employees, setEmployees] = useState([]);
-  const [preview, setPreview] = useState(null); // State for image preview
+  const [preview, setPreview] = useState(null); // For image preview
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const storedEmployees = JSON.parse(localStorage.getItem('employees')) || [];
-    setEmployees(storedEmployees);
-  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -27,24 +21,41 @@ function Register() {
       const file = files[0];
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreview(reader.result); // Set image preview
+        setPreview(reader.result);
       };
       reader.readAsDataURL(file);
     } else {
       setFormData({ ...formData, [name]: value });
     }
   };
-  
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const updatedEmployees = [...employees, { ...formData, image: preview }];
-    setEmployees(updatedEmployees);
-    localStorage.setItem('employees', JSON.stringify(updatedEmployees));
-    navigate('/employeespage');
-    alert('Successfully registered')
+  
+    if (!formData.id) {
+      alert('Employee ID is required!');
+      return;
+    }
+  
+    const formDataToSend = {
+      id: formData.id,
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      position: formData.position,
+      imageUrl: formData.imageUrl || '', // Optional image URL
+    };
+  
+    try {
+      const response = await axios.post('http://localhost:5000/employees', formDataToSend);
+      alert('Employee added successfully!');
+      navigate('/employeespage');
+    } catch (error) {
+      console.error('Error:', error.message);
+      alert('Error adding employee');
+    }
   };
-
+  
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white rounded-lg shadow-md max-w-lg w-full flex p-6">
@@ -58,92 +69,83 @@ function Register() {
           )}
         </div>
         <div className="flex-grow p-4">
-          <h2 className="text-xl font-semibold text-center text-[black]  mb-6 justify-center">Employee Registration</h2>
-          <p className='text-[red]'>Please register using your details</p>
-          <hr></hr>
+          <h2 className="text-xl font-semibold text-center text-black mb-6">Employee Registration</h2>
+          <p className="text-red-500 text-center mb-4">Please register using your details</p>
+          <hr className="mb-4" />
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="id" className="block text-sm font-medium text-gray-700">ID</label>
+              <label htmlFor="id" className="block text-sm font-medium text-gray-700">Employee ID</label>
               <input
                 type="text"
                 name="id"
-                placeholder="Enter ID"
+                id="id"
                 value={formData.id}
                 onChange={handleChange}
                 required
-                className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
               <input
                 type="text"
                 name="name"
-                placeholder="Enter Name"
+                id="name"
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
               <input
                 type="email"
                 name="email"
-                placeholder="Enter Email"
+                id="email"
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
               <input
                 type="tel"
                 name="phone"
-                placeholder="Enter Phone"
+                id="phone"
                 value={formData.phone}
                 onChange={handleChange}
                 required
-                className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-
             <div>
               <label htmlFor="position" className="block text-sm font-medium text-gray-700">Position</label>
               <input
                 type="text"
                 name="position"
-                placeholder="Enter Position"
+                id="position"
                 value={formData.position}
                 onChange={handleChange}
                 required
-                className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-
             <div>
-              <label htmlFor="image" className="block text-sm font-medium text-gray-700">Image Upload</label>
+              <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700">Employee Photo</label>
               <input
                 type="file"
-                name="image"
-                accept="image/*"
+                name="imageUrl"
+                id="imageUrl"
                 onChange={handleChange}
-                className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md"
               />
             </div>
-
-            <button
-              type="submit"
-              className="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
-            >
-              Register Employee
-            </button>
+            <div className="flex justify-center mt-6">
+              <button type="submit" className="bg-blue-500 text-white py-2 px-4 rounded-md focus:outline-none">Register Employee</button>
+            </div>
           </form>
         </div>
       </div>

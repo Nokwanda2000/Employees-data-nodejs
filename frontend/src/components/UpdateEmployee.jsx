@@ -7,7 +7,7 @@ function UpdateEmployee({ addEmployee, updateEmployee, currentEmployee, setCurre
     email: '',
     phone: '',
     position: '',
-    image: null, // Change to null to hold the uploaded file
+    imageUrl: null,
   });
 
   useEffect(() => {
@@ -20,7 +20,7 @@ function UpdateEmployee({ addEmployee, updateEmployee, currentEmployee, setCurre
         email: '',
         phone: '',
         position: '',
-        image: null, // Reset to null for a new employee
+        imageUrl: null, // Reset to null for a new employee
       });
     }
   }, [currentEmployee]);
@@ -67,15 +67,15 @@ function UpdateEmployee({ addEmployee, updateEmployee, currentEmployee, setCurre
       email: '',
       phone: '',
       position: '',
-      image: null, // Reset image to null
+      imageUrl: null, // Reset image to null
     });
     setCurrentEmployee(null); // Clear the current employee
   };
 
   return (
-    <div className="mb-6">
-      <h2 className="text-lg font-semibold mb-4">{currentEmployee ? 'Edit Employee' : 'Add Employee'}</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="mb-6 max-w-xs mx-auto">
+      <h2 className="text-lg font-semibold mb-3 text-center">{currentEmployee ? 'Edit Employee' : 'Add Employee'}</h2>
+      <form onSubmit={handleSubmit} className="space-y-3">
         <input
           type="text"
           name="id"
@@ -83,7 +83,7 @@ function UpdateEmployee({ addEmployee, updateEmployee, currentEmployee, setCurre
           value={formData.id}
           onChange={handleChange}
           required
-          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
         <input
           type="text"
@@ -92,7 +92,7 @@ function UpdateEmployee({ addEmployee, updateEmployee, currentEmployee, setCurre
           value={formData.name}
           onChange={handleChange}
           required
-          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
         <input
           type="email"
@@ -101,7 +101,7 @@ function UpdateEmployee({ addEmployee, updateEmployee, currentEmployee, setCurre
           value={formData.email}
           onChange={handleChange}
           required
-          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
         <input
           type="tel"
@@ -110,7 +110,7 @@ function UpdateEmployee({ addEmployee, updateEmployee, currentEmployee, setCurre
           value={formData.phone}
           onChange={handleChange}
           required
-          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
         <input
           type="text"
@@ -119,18 +119,18 @@ function UpdateEmployee({ addEmployee, updateEmployee, currentEmployee, setCurre
           value={formData.position}
           onChange={handleChange}
           required
-          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
         <input
           type="file"
           name="image"
           accept="image/*"
           onChange={handleChange}
-          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition duration-200"
+          className="w-full bg-blue-500 text-white p-2 rounded-sm text-sm hover:bg-blue-600 transition duration-200"
         >
           {currentEmployee ? 'Update Employee' : 'Add Employee'}
         </button>

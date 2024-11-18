@@ -9,6 +9,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './App.css';
 import Landingpage from './pages/landingpage';
 import Registerpage from './pages/registerpage';
+import Updatemlployeepage from './pages/Updatemlployeepage';
 
 function App() {
 
@@ -21,6 +22,8 @@ function App() {
         <Route path="/" element={<Landingpage />} />
         <Route path="/registerpage" element={<Registerpage />} />
         <Route path="/employeespage" element={<Employeespage />} />
+        <Route path="/employee/:id" element={<Employeespage />} />
+        <Route path="/UpdateEmployee/:id" element={<Updatemlployeepage />} />
   
       </Routes>
 

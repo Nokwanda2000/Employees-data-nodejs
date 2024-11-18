@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import UpdateEmployee from './UpdateEmployee';
+import { useNavigate } from 'react-router-dom';
 
 function EmployeeList() {
   const [employees, setEmployees] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentEmployee, setCurrentEmployee] = useState(null);
+  const navigate = useNavigate();
 
-  // Retrieve employees from the backend when the page loads
+  // Fetch employees from the backend API on mount
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const response = await axios.get('/api/employees');
+        const response = await axios.get('http://localhost:5000/employees');
         setEmployees(response.data);
       } catch (error) {
         console.error('Error fetching employees:', error);
@@ -21,39 +21,29 @@ function EmployeeList() {
     fetchEmployees();
   }, []);
 
-  // Function to add a new employee
-  const addEmployee = (newEmployee) => {
-    setEmployees([...employees, newEmployee]);
-  };
-
-  // Function to update an existing employee
-  const updateEmployee = (updatedEmployee) => {
-    setEmployees(employees.map((employee) =>
-      employee.id === updatedEmployee.id ? updatedEmployee : employee
-    ));
-    setCurrentEmployee(null); // Clear the form after updating
-  };
-
-  // Function to delete an employee
-  const deleteEmployee = async (id) => {
-    try {
-      await axios.delete(`/api/employees/${id}`);
-      setEmployees(employees.filter((employee) => employee.id !== id));
-    } catch (error) {
-      console.error('Error deleting employee:', error);
-    }
-  };
-
-  // Filter employees based on the search term
   const filteredEmployees = employees.filter((employee) =>
     employee.id.includes(searchTerm)
   );
 
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/employees/${id}`);
+      // Update the local state to reflect the deleted employee
+      setEmployees(employees.filter((employee) => employee.id !== id));
+      alert('Employee deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting employee:', error);
+      alert('Error deleting employee');
+    }
+  };
+
+  const handleUpdate = (id) => {
+    navigate(`/UpdateEmployee/${id}`); // Navigate to the UpdateEmployee page with the employee ID
+  };
+
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-lg mt-10">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">Employee List</h2>
-
-      {/* Search bar */}
       <input
         type="text"
         placeholder="Search by ID"
@@ -62,47 +52,42 @@ function EmployeeList() {
         className="w-full p-3 mb-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
-      {/* Employee Form for Adding/Updating Employees */}
-      {currentEmployee && (
-        <UpdateEmployee
-          addEmployee={addEmployee}
-          updateEmployee={updateEmployee}
-          currentEmployee={currentEmployee}
-          setCurrentEmployee={setCurrentEmployee}
-        />
-      )}
-
-      {/* Employee List */}
       <ul className="space-y-4">
         {filteredEmployees.length > 0 ? (
           filteredEmployees.map((employee) => (
             <li key={employee.id} className="flex items-center p-4 border border-gray-200 rounded-md hover:bg-gray-50 transition duration-200">
               <div className="flex-shrink-0 w-16 h-16">
-                {employee.photoUrl ? (
-                  <img src={employee.photoUrl} alt={employee.name} className="w-full h-full rounded-full object-cover" />
+                {employee.imageUrl ? (
+                  <img src={employee.imageUrl} className="w-full h-full rounded-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
-                    <span className="text-gray-400">No Image</span>
+                    <span className="text-gray-400">No Photo</span>
                   </div>
                 )}
               </div>
               <div className="flex-1 ml-4">
-                <h3 className="font-semibold text-gray-800">{employee.name}</h3>
-                <p className="text-gray-600">{employee.position}</p>
-                <span className="text-gray-500">{employee.id}</span>
+                <h3 className="text-lg font-semibold">{employee.name}</h3>
+                <p>ID: {employee.id}</p>
+                <p>Position: {employee.position}</p>
               </div>
-              <div className="flex space-x-2">
+              <div className="flex items-center space-x-2">
                 <button
-                  className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition duration-200"
-                  onClick={() => setCurrentEmployee(employee)}>Edit</button>
+                  onClick={() => handleUpdate(employee.id)}
+                  className="bg-yellow-500 text-white py-1 px-3 rounded-md"
+                >
+                  Update
+                </button>
                 <button
-                  className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600 transition duration-200"
-                  onClick={() => deleteEmployee(employee.id)}>Delete</button>
+                  onClick={() => handleDelete(employee.id)}
+                  className="bg-red-500 text-white py-1 px-3 rounded-md"
+                >
+                  Delete
+                </button>
               </div>
             </li>
           ))
         ) : (
-          <p className="text-gray-500">No employees found.</p>
+          <p>No employees found.</p>
         )}
       </ul>
     </div>
