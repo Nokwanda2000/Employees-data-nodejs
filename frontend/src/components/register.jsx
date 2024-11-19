@@ -13,6 +13,7 @@ function Register() {
   });
   const [preview, setPreview] = useState(null); // For image preview
   const navigate = useNavigate();
+  
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -28,7 +29,7 @@ function Register() {
       setFormData({ ...formData, [name]: value });
     }
   };
-
+console.log(formData);
   const handleSubmit = async (e) => {
     e.preventDefault();
   
